@@ -13,5 +13,5 @@ def fib(n):
         return num
 #NEVER write a return inside a loop because you will return the first interation
 print("5th fibonnaci's term;", fib(5))
-print("11th fibonnaci's term;", fib(11))
-print("55th fibonnaci's term;", fib(55))
+print("10th fibonnaci's term;", fib(10))
+print("15th fibonnaci's term;", fib(15))
