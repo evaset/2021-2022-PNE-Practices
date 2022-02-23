@@ -78,7 +78,7 @@ class Seq:
         file = filename
         text = open(folder + file + ".txt", "r").read()
         self.strbases = text[text.find("\n"):].replace("\n", "")
-        return self.strbases
+
 
     def max_val(self, gen_dict):
         for key, value in gen_dict.items():
