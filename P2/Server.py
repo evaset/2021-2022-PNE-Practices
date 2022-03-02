@@ -1,19 +1,14 @@
 import socket
 
-# Configure the Server's IP and PORT
-PORT = 8000 #port between 2000-20000
-IP = ""  #IP that allways works 0.0.0.0 or look what is your IP (ipconfig) or IPlocalhost and port 8000
+PORT = 8080
+IP = "10.3.36.225"
 MAX_OPEN_REQUESTS = 5
 
-# Counting the number of connections
 number_con = 0
 
-# create an INET, STREAMing socket
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     serversocket.bind((IP, PORT))
-    # become a server socket
-    # MAX_OPEN_REQUESTS connect requests before refusing outside connections
     serversocket.listen(MAX_OPEN_REQUESTS)
 
     while True:

@@ -65,12 +65,12 @@ class Seq:
 
     def complement(self):
         d = {"A": "T", "T": "A", "C": "G", "G": "C"}
-        comp_list = []
+        comp_list = ""
         if self.valid_sequence():
             for c in self.strbases:
-                comp_list.append(d[c])
+                comp_list += d[c]
         else:
-            comp_list.append(self.strbases)
+            comp_list = self.strbases
         return comp_list
 
     def read_fasta(self, filename):
