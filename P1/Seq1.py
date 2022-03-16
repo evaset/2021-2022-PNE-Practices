@@ -86,5 +86,24 @@ class Seq:
             if value == max_val:
                 return key
 
+    def fragment(self, num_base):
+        n = 0
+        b = num_base
+        fragment_list = []
+        while len(fragment_list) < b:
+            fragment = self.strbases[n:n+10]
+            fragment_list.append(fragment)
+            n += 10
+        return fragment_list
+
+    def percent(self, dict_count):
+        total = self.len()
+        p = {"A": 0, "T": 0, "C": 0, "G": 0}
+        for key,value in dict_count.items():
+            p[key] = (int(value) * 100) / int(total)
+        return p
+
+
+
 
 
