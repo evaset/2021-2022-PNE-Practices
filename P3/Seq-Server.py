@@ -2,18 +2,19 @@ import socket
 import colorama
 from Seq1 import Seq
 
-def convert_message(base_count):
+def convert_message(base_count, percent_count):
     message = ""
     for k,v in base_count.items():
-        message += k + ": " + str(v) + "\n"
+        message = message+ f"{k}:  {base_count[k]} ({percent_count[k]}%)"+ "\n"
     return message
 
-seq_list = ["AAA","AGG","ACC","AGC"]
+seq_list = ["AAA","AGG","ACC","AGC", "ACG"]
 
 PORT = 6123
 IP = "127.0.0.1"
 
 ls = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+ls.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 ls.bind((IP, PORT))
 ls.listen()
 print("The server is configured!")
@@ -40,14 +41,11 @@ while True:
         if command != "PING":
             argument = splitted_command[1]
         print(colorama.Fore.GREEN + f"{command} command!")
-        print(colorama.Fore.RESET)
 
 # -- manage message
         if command == "PING":
             response = "OK!\n"
             print(colorama.Fore.WHITE + response)
-            print(colorama.Fore.RESET)
-
         elif command == "GET":
             try:
                 argument = int(splitted_command[1])
@@ -57,28 +55,30 @@ while True:
                     response = "Number not in range"
             except ValueError:
                 response = "Must be a number between 0 and 4"
-
             print(colorama.Fore.WHITE + response)
-            print(colorama.Fore.RESET)
 
         elif command == "INFO":
             seq = Seq(argument)
             count = seq.count()
             percent = seq.percent(count)
-            response1 = convert_message(count)
-            response2 = convert_message(percent)
-            response3 = f"Total length: {str(seq.len())}\n {response1}\n {response2}"
-            response = "Sequence:" + argument + "\n" + response3
+            response = convert_message(count, percent)
+            response = f"Total length: {str(seq.len())}\n{response}\n"
+            response = "Sequence:" + argument + "\n" + response
+            print(colorama.Fore.WHITE + response)
 
         elif command == "COMP":
             seq = Seq(argument)
             response = seq.complement()
+            print(colorama.Fore.WHITE + response)
 
         elif command == "REV":
             response = argument[::-1]
+            print(colorama.Fore.WHITE + response)
 
         elif command == "GENE":
-            pass
+            seq = Seq(argument)
+            response = seq.read_fasta(argument)
+            print(colorama.Fore.WHITE + response)
 
         else:
             response = "This command is not available in the server.\n"

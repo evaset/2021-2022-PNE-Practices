@@ -78,7 +78,8 @@ class Seq:
         file = filename
         text = open(folder + file + ".txt", "r").read()
         self.strbases = text[text.find("\n"):].replace("\n", "")
-
+        self.strbases
+        return self.strbases
 
     def max_val(self, gen_dict):
         for key, value in gen_dict.items():
@@ -100,7 +101,7 @@ class Seq:
         total = self.len()
         p = {"A": 0, "T": 0, "C": 0, "G": 0}
         for key,value in dict_count.items():
-            p[key] = (int(value) * 100) / int(total)
+            p[key] = round((int(value) * 100) / int(total),1)
         return p
 
 
