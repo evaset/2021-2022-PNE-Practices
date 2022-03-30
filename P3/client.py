@@ -31,7 +31,7 @@ print("GET 2:", msg[0])
 msg = c.talk("GET 3")
 print("GET 3:", msg[0])
 msg = c.talk("GET 4")
-print("GET 4:", msg[0])
+print("GET 4:", msg[0],"\n")
 
 print(" * Testing INFO...")
 msg = c.talk(f"INFO {seq}")
@@ -39,13 +39,17 @@ print(msg[0])
 
 print(" * Testing COMP...")
 msg = c.talk(f"COMP {seq}")
-print("COMP:", msg[0])
+print("COMP:", msg[0],"\n")
 
 print(" * Testing REV...")
 msg = c.talk(f"REV {seq}")
-print("REV:", msg[0])
+print("REV:", msg[0],"\n")
 
 print(" * Testing GENE...")
 for gene in gene_list:
     msg = c.talk(f"GENE {gene}")
-    print(f"GENE {gene}", msg[0], "\n")
+    print(f"GENE {gene}","\n", msg[0], "\n")
+
+print(" * Testing OPE...")
+msg = c.talk(f"OPE ACGTACGt")
+print(msg[0])

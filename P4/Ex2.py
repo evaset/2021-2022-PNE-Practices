@@ -23,32 +23,32 @@ def process_client(s):
 
     print("Request line: ", end="")
     termcolor.cprint(req_line, "green")
+    print("Request", len(req_line))
+    if len(req_line) > 0:
+        route = req_line.split(" ")[1]
+        print("ROUTE", route)
+        if route == "/":
+            body = pathlib.Path("html/index.html").read_text()
+        elif route == "/favicon.ico":
+            body = pathlib.Path("html/index.html").read_text()
+        else:
+            try:
+                filename = route.split("/")[2:3]
+                body = pathlib.Path("html/" + filename[0] + ".html").read_text()
+            except IndexError:
+                body =  pathlib.Path("html/error.html").read_text()
+        # -- Status line: We respond that everything is ok (200 code)
+        status_line = "HTTP/1.1 200 OK\n"
 
-    route = req_line.split(" ")[1]
-    print("ROUTE", route)
+        # -- Add the Content-Type header
+        header = "Content-Type: text/html\n"
 
-    if route == "/":
-        body = pathlib.Path("html/index.html").read_text()
-    elif route == "/favicon.ico":
-        body = pathlib.Path("html/index.html").read_text()
-    else:
-        try:
-            filename = route.split("/")[2:3]
-            body = pathlib.Path("html/" + filename[0] + ".html").read_text()
-        except IndexError:
-            body =  pathlib.Path("html/error.html").read_text()
-    # -- Status line: We respond that everything is ok (200 code)
-    status_line = "HTTP/1.1 200 OK\n"
+        # -- Add the Content-Length
+        header += f"Content-Length: {len(body)}\n"
 
-    # -- Add the Content-Type header
-    header = "Content-Type: text/html\n"
-
-    # -- Add the Content-Length
-    header += f"Content-Length: {len(body)}\n"
-
-    # -- Build the message by joining together all the parts
-    response_msg = status_line + header + "\n" + body
-    cs.send(response_msg.encode())
+        # -- Build the message by joining together all the parts
+        response_msg = status_line + header + "\n" + body
+        cs.send(response_msg.encode())
 
 
 # -------------- MAIN PROGRAM

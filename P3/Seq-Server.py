@@ -76,8 +76,16 @@ while True:
             print(colorama.Fore.WHITE + response)
 
         elif command == "GENE":
-            seq = Seq(argument)
+            seq = Seq()
             response = seq.read_fasta(argument)
+            print(colorama.Fore.WHITE + response)
+
+        elif command == "OPE":
+            seq = Seq(argument)
+            dict_count = seq.count()
+            response = str(seq.operation(dict_count))
+            if response == "null":
+                response = "We could not multiply the bases since the sequence is not correct."
             print(colorama.Fore.WHITE + response)
 
         else:

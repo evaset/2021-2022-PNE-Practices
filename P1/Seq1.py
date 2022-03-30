@@ -78,8 +78,8 @@ class Seq:
         file = filename
         text = open(folder + file + ".txt", "r").read()
         self.strbases = text[text.find("\n"):].replace("\n", "")
-        self.strbases
-        return self.strbases
+        fasta = self.strbases
+        return fasta
 
     def max_val(self, gen_dict):
         for key, value in gen_dict.items():
@@ -104,7 +104,21 @@ class Seq:
             p[key] = round((int(value) * 100) / int(total),1)
         return p
 
-
+    def operation(self, dict_count):
+        operation = 0
+        if self.valid_sequence():
+            for key,value in dict_count.items():
+                if key == "A":
+                    operation += operation + (value * 4)
+                elif key == "C":
+                    operation =+ operation + (value * -3)
+                elif key == "G":
+                    operation =+ operation + (value * 7)
+                elif key == "T":
+                    operation =+ operation + (value * -6)
+        else:
+            operation = "null"
+        return operation
 
 
 
