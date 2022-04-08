@@ -2,8 +2,10 @@ import http.server
 import socketserver
 import termcolor
 from pathlib import Path
+from Seq1 import Seq
 
 seq_list = ["AAAT", "GGCT", "AGGT", "ACGT", "TGGT"]
+gen_list = ["U5", "ADA", "FRAT1", "RNU6_269P","FXN" ]
 # Define the Server's port
 PORT = 8080
 
@@ -35,12 +37,16 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     file = self.path
                     filename = file.split("?")[0]
                     arg = file.split("?")[1]
+                    arg = arg.split("=")[1]
                     print(arg)
                     if len(arg)<1:
                         contents = Path("html/" + filename + ".html").read_text()
-                    elif len(arg)>1:
-                        arg = arg.split("=")[1]
+                    elif arg.isdigit():
                         contents = Path("html/" + filename + ".html").read_text().format(arg,seq_list[int(arg)])
+                    elif arg in gen_list:
+                        seq = Seq()
+                        contents = Path("html/" + filename + ".html").read_text(). format(arg,seq.read_fasta(arg))
+
                 except IndexError:
                     contents = Path("html/error.html").read_text()
                 except FileNotFoundError:
