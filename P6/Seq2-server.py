@@ -6,6 +6,11 @@ from Seq1 import Seq
 
 seq_list = ["AAAT", "GGCT", "AGGT", "ACGT", "TGGT"]
 gen_list = ["U5", "ADA", "FRAT1", "RNU6_269P","FXN" ]
+def convert_message(base_count, percent_count):
+    message = ""
+    for k,v in base_count.items():
+        message = message+ f"{k}:  {base_count[k]} ({percent_count[k]}%)"+ "\n"
+    return message
 # Define the Server's port
 PORT = 8080
 
@@ -38,23 +43,42 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     filename = file.split("?")[0]
                     arg = file.split("?")[1]
                     arg = arg.split("=")[1]
-                    print(arg)
+                    print("filename: ", filename)
+                    print("argument: ", arg)
                     if len(arg)<1:
+                        filename = filename.removesuffix("?")
+                        print(filename)
                         contents = Path("html/" + filename + ".html").read_text()
                     elif arg.isdigit():
                         contents = Path("html/" + filename + ".html").read_text().format(arg,seq_list[int(arg)])
                     elif arg in gen_list:
                         seq = Seq()
-                        contents = Path("html/" + filename + ".html").read_text(). format(arg,seq.read_fasta(arg))
-
+                        contents = Path("html/" + filename + ".html").read_text().format(arg,seq.read_fasta(arg))
+                    elif "&" in arg:
+                        sequence = arg.split("&")[0]
+                        operation = self.path.split("=")[2]
+                        seq = Seq(sequence)
+                        if seq.valid_sequence() and len(sequence) > 0:
+                            if operation == "info":
+                                count = seq.count()
+                                percent = seq.percent(count)
+                                response = convert_message(count, percent)
+                                response = f"Total length: {str(seq.len())}\n{response}\n"
+                                result = "Sequence:" + sequence + "\n" + response
+                            elif operation == "comp":
+                                result = seq.complement()
+                            elif operation == "rev":
+                                result = sequence[::-1]
+                            contents = Path("html/" + filename + ".html").read_text().format(sequence,operation,result)
+                        else:
+                            contents = Path("html/error.html").read_text()
                 except IndexError:
-                    contents = Path("html/error.html").read_text()
+                    filename = filename.removesuffix("?")
+                    print(filename)
+                    contents = Path("html/" + filename + ".html").read_text()
                 except FileNotFoundError:
+                    print("filenotfound")
                     contents = Path("html/error.html").read_text()
-
-        # Open the form1.html file
-        # Read the index from the file
-
 
         # Generating the response message
         self.send_response(200)  # -- Status line: OK!
