@@ -2,6 +2,15 @@ import http.server
 import socketserver
 import termcolor
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs
+# To solve the problem of "strange" info. in the url, such as ñ, spaces, !...
+# urlparse: returns a tuple parsing the url (interesting info. located at "path" and "query")
+# parse_qs: returns a dictionary with keys and values (pass the returning urlparse "query" to parse_qs)
+
+from jinja2 import Template
+# def read_template_htm(filename):
+#   filename = Template()
+#   filename.render(msg=message)
 
 # Define the Server's port
 PORT = 8080

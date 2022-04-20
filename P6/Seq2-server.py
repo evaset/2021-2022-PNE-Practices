@@ -77,7 +77,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     print(filename)
                     contents = Path("html/" + filename + ".html").read_text()
                 except FileNotFoundError:
-                    print("filenotfound")
+                    print("file not found")
                     contents = Path("html/error.html").read_text()
 
         # Generating the response message
