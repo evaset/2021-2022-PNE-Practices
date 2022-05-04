@@ -3,27 +3,35 @@ import socketserver
 import termcolor
 from pathlib import Path
 from Seq1 import Seq
+import json
 import jinja2 as j
 from urllib.parse import parse_qs, urlparse
 
 HTML_FOLDER = "./html/"
 
-SEQ_LIST = ["AAAT", "GGCT", "AGGT", "ACGT", "TGGT"]
-GENE_LIST = ["U5", "ADA", "FRAT1", "RNU6_269P","FXN" ]
+
+# Define the Server's port
+PORT = 8080
+
 def read_html_file(filename):
     contents = Path(HTML_FOLDER + filename).read_text()
     contents = j.Template(contents)
     return contents
 
-
-def convert_message(base_count, percent_count):
-    message = ""
-    for k,v in base_count.items():
-        message = message+ f"{k}:  {base_count[k]} ({percent_count[k]}%)"+ "<br>"
-    return message
-# Define the Server's port
-PORT = 8080
-
+def make_ensembl_request(url):
+    SERVER = "rest.ensembl.org"
+    # params shuld be &param=1
+    ARGUMENT = "?content-type=application/json"
+    conn = http.client.HTTPConnection(SERVER)
+    try:
+        conn.request("GET", url + ARGUMENT)
+    except ConnectionRefusedError:
+        print("ERROR! Cannot connect to the server")
+        exit()
+    r1 = conn.getresponse()
+    print(f"Response received:{r1.status} {r1.reason}\n")
+    data1 = r1.read().decode("utf-8")
+    return json.loads(data1)
 
 # -- This is for preventing the error: "Port already in use"
 socketserver.TCPServer.allow_reuse_address = True
@@ -48,37 +56,26 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         print("The argument is: ", arguments)
 
         if self.path == "/":
-            contents = read_html_file("form-1.html").render(context={"n_seq": len(SEQ_LIST), "gene": GENE_LIST})
+            contents = Path("html/index.html").read_text()
         elif self.path == "/favicon.ico":
-            contents = Path("html/form-1.html").read_text()
-        elif path == "/ping":
-            contents = read_html_file(path[1:] + ".html").render()
-        elif path == "/get":
-            n_seq = int(arguments["n_seq"][0])
-            seq = SEQ_LIST[n_seq]
-            contents = read_html_file(path[1:] + ".html").render(context={"n_seq": n_seq, "seq": seq})
-        elif path == "/gene":
-            n_gene = arguments["n_gene"][0]
-            seq = Seq()
-            seq.read_fasta(n_gene)
-            contents = read_html_file(path[1:] + ".html").render(context={"n_gene": n_gene, "seq": seq.strbases})
-        elif path == "/operation":
-            sequence = arguments["seq"][0]
-            operation = arguments["op"][0]
-            seq = Seq(sequence)
-            if operation == "rev":
-                contents = read_html_file(path[1:] + ".html").render(context={
-                    "sequence": sequence, "operation": operation, "result": seq.reverse() })
-            elif operation == "comp":
-                contents = read_html_file(path[1:] + ".html").render(context={
-                    "sequence": sequence, "operation": operation, "result": seq.complement()})
-            else:
-                count = seq.count()
-                percent = seq.percent(count)
-                response = convert_message(count, percent)
-                response = f"Total length: {str(seq.len())}<br>{response}<br>"
-                contents = read_html_file(path[1:] + ".html").render(context={
-                    "sequence": sequence, "operation": operation, "result": response})
+            contents = Path("html/index.html").read_text()
+        elif path == "/listSpecies":
+            try:
+                limit_species = int(arguments["limit"][0])
+                dict_answer = make_ensembl_request("/info/species")
+                list_species = []
+                n_species = len(dict_answer["species"])
+                try:
+                    for i in range(limit_species):
+                        list_species.append(dict_answer["species"][i]["name"])
+                except IndexError:
+                    for i in range(n_species):
+                        list_species.append(dict_answer["species"][i]["name"])
+                contents = read_html_file("list_species" + ".html")\
+                    .render(context={"n_species": n_species,"limit_species": limit_species, "species": list_species})
+            except ValueError:
+                contents = Path("html/Error.html").read_text()
+
         else:
             contents = Path("html/Error.html").read_text()
 
