@@ -5,7 +5,8 @@
         <title>Karyotype</title>
     </head>
     <body>
-    <p>The name f the chrmosomes are:  </p>
+    <p>The name of the chromosomes are: </p>
+    <p>{% for b in context.list_chromosomes %} </p>
     <ul><li>{{b}}</li></ul>
     {% endfor %}
     </body>

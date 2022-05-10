@@ -27,7 +27,40 @@
         <input type="text" name="specie"><br>
         Select a chromosome :
         <input type="text" name="chromo"><br>
+        <input type="submit" value="Send"><br><br>
+    </form>
+
+    <form action="/geneSeq" method="get">
+        4) Sequence of a human gene: <br>
+        Gene :
+        <input type="text" name="gene"><br>
+        <input type="submit" value="Send"><br><br>
+    </form>
+
+    <form action="/geneInfo" method="get">
+        5) Information about a human gene: <br>
+        Gene :
+        <input type="text" name="gene"><br>
+        <input type="submit" value="Send"><br><br>
+    </form>
+
+    <form action="/geneCalc" method="get">
+        6) Length and percentage of human gene bases: <br>
+        Gene :
+        <input type="text" name="gene"><br>
+        <input type="submit" value="Send"><br><br>
+    </form>
+
+    <form action="/geneList" method="get">
+        7) Names of the genes in the chromosome <br>
+        Select the chromosome :
+        <input type="text" name="chromo"><br>
+        From :
+        <input type="text" name="start"><br>
+        To:
+        <input type="text" name="end"><br>
         <input type="submit" value="Send"><br>
+        #endpoint: phenotype/region
     </form>
 
   </body>

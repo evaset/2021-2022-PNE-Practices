@@ -10,8 +10,19 @@ from urllib.parse import parse_qs, urlparse
 HTML_FOLDER = "./html/"
 
 
-# Define the Server's port
+
 PORT = 8080
+GENES = {"SRCAP":"ENSG00000080603",
+         "FRAT1":"ENSG00000165879",
+         "ADA":"ENSG00000196839",
+         "FXN":"ENSG00000165060",
+         "RNU6_269P":"ENST00000391077",
+         "MIR633":"ENSG00000207552",
+         "TTTY4C":"ENSG00000228296",
+         "RBMY2YP":"ENSG00000227633",
+         "FGFR3":"ENSG00000068078",
+         "KDR":"ENSG00000128052",
+         "ANK2":"ENSG00000145362"}
 
 def read_html_file(filename):
     contents = Path(HTML_FOLDER + filename).read_text()
@@ -73,6 +84,63 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                         list_species.append(dict_answer["species"][i]["name"])
                 contents = read_html_file("list_species" + ".html")\
                     .render(context={"n_species": n_species,"limit_species": limit_species, "species": list_species})
+            except ValueError:
+                contents = Path("html/Error.html").read_text()
+        elif path == "/karyotype":
+            try:
+                class_specie = arguments["specie"][0]
+                dict_answer = make_ensembl_request("/info/assembly/"+class_specie)
+                list_chromosomes = dict_answer["karyotype"]
+                contents = read_html_file("karyotype" + ".html") \
+                    .render(context={"list_chromosomes": list_chromosomes})
+            except KeyError:
+                contents = Path("html/Error.html").read_text()
+            except ValueError:
+                contents = Path("html/Error.html").read_text()
+        elif path == "/chromosomeLength":
+            try:
+                class_specie = arguments["specie"][0]
+                n_chromosome = int(arguments["chromo"][0])
+                dict_answer = make_ensembl_request("/info/assembly/" + class_specie)
+                list_chromosomes = dict_answer["top_level_region"][n_chromosome]["length"]
+                contents = read_html_file("chromosomeLength" + ".html")\
+                    .render(context={"chromosome_length": list_chromosomes})
+            except KeyError:
+                contents = Path("html/Error.html").read_text()
+        elif path == "/geneSeq":
+            try:
+                gene = arguments["gene"][0]
+                ID = GENES[gene]
+                dict_answer = make_ensembl_request("/sequence/id/" + ID)
+                list_seq = dict_answer["seq"]
+                contents = read_html_file("geneSeq" + ".html") \
+                    .render(context={"list_seq": list_seq})
+            except KeyError:
+                contents = Path("html/Error.html").read_text()
+            except ValueError:
+                contents = Path("html/Error.html").read_text()
+        elif path == "/geneInfo":
+            try:
+                gene = arguments["gene"][0]
+                ID = GENES[gene]
+                dict_answer = make_ensembl_request("/sequence/id/" + ID)
+                list_seq = dict_answer["seq"]
+                contents = read_html_file("geneSeq" + ".html") \
+                    .render(context={"list_seq": list_seq})
+            except KeyError:
+                contents = Path("html/Error.html").read_text()
+            except ValueError:
+                contents = Path("html/Error.html").read_text()
+        elif path == "/geneCalc":
+            try:
+                gene = arguments["gene"][0]
+                ID = GENES[gene]
+                dict_answer = make_ensembl_request("/sequence/id/" + ID)
+                list_seq = dict_answer["seq"]
+                contents = read_html_file("geneSeq" + ".html") \
+                    .render(context={"list_seq": list_seq})
+            except KeyError:
+                contents = Path("html/Error.html").read_text()
             except ValueError:
                 contents = Path("html/Error.html").read_text()
 
