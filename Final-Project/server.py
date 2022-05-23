@@ -32,7 +32,6 @@ def read_html_file(filename):
     contents = j.Template(contents)
     return contents
 
-
 def make_ensembl_request(url):
     SERVER = "rest.ensembl.org"
     # params shuld be &param=1
@@ -184,11 +183,9 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 genes_names = []
                 for d in dict_answer:
                     phenotype = d["phenotype_associations"]
-                    print("phenotype: ",phenotype)
                     try:
                         for e in phenotype:
                             genes_names.append(e["attributes"]["associated_gene"])
-                            print(genes_names)
                     except KeyError:
                         pass
                 if len(genes_names) == 0:

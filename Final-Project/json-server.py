@@ -85,7 +85,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         print("The argument is: ", arguments)
 
 
-        if self.path == "/" or "/json=1":
+        if self.path == "/":
             contents = Path("html/index.html").read_text()
         elif self.path == "/favicon.ico":
             contents = Path("html/index.html").read_text()
@@ -103,6 +103,10 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                         list_species.append(dict_answer["species"][i]["name"])
                 contents = read_html_file("list_species" + ".html")\
                     .render(context={"n_species": n_species,"limit_species": limit_species, "species": list_species})
+                if arguments['json'][0] == '1':
+                    contents = {"The total number of species in the ensembl is:": n_species,
+                                "The limit you have selected is:": limit_species,
+                                "The limit you have selected is": list_species}
             except ValueError:
                 contents = Path("html/Error.html").read_text()
             except KeyError:
@@ -114,10 +118,13 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 list_chromosomes = dict_answer["karyotype"]
                 contents = read_html_file("karyotype" + ".html") \
                     .render(context={"list_chromosomes": list_chromosomes})
+                if arguments['json'][0] == '1':
+                    contents = {"The name of the chromosomes are:": list_chromosomes}
             except KeyError:
                 contents = Path("html/Error.html").read_text()
             except ValueError:
                 contents = Path("html/Error.html").read_text()
+
         elif path == "/chromosomeLength":
             try:
                 class_specie = arguments["specie"][0]
@@ -126,8 +133,11 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 list_chromosomes = dict_answer["top_level_region"][n_chromosome]["length"]
                 contents = read_html_file("chromosomeLength" + ".html")\
                     .render(context={"chromosome_length": list_chromosomes})
+                if arguments['json'][0] == '1':
+                    contents = {"The length of the chromosome is:": list_chromosomes}
             except KeyError:
                 contents = Path("html/Error.html").read_text()
+
         elif path == "/geneSeq":
             try:
                 gene = arguments["gene"][0]
@@ -136,10 +146,13 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 list_seq = dict_answer["seq"]
                 contents = read_html_file("geneSeq" + ".html") \
                     .render(context={"list_seq": list_seq})
+                if arguments['json'][0] == '1':
+                    contents = {"The sequence of the gene is:": list_seq}
             except KeyError:
                 contents = Path("html/Error.html").read_text()
             except ValueError:
                 contents = Path("html/Error.html").read_text()
+
         elif path == "/geneInfo":
             try:
                 gene = arguments["gene"][0]
@@ -150,13 +163,19 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 gene_end = int(gene_info_list[4])
                 gene_length = gene_end - gene_start
                 gene_chromosome_name = gene_info_list[1]
-                #gene_length2 = len(dict_answer["seq"])
                 contents = read_html_file("geneInfo" + ".html") \
-                    .render(context={"gene_start": gene_start, "gene_end": gene_end, "gene_length": gene_length,"ID": ID, "gene_chromosome_name": gene_chromosome_name})
+                    .render(context={"gene_start": gene_start, "gene_end": gene_end, "gene_length": gene_length,"ID": ID,"gene_chromosome_name": gene_chromosome_name})
+                if arguments['json'][0] == '1':
+                    contents = {"The start of the gene is:": gene_start,
+                                "The end of the gene is:": gene_end,
+                                "The length is:": gene_length,
+                                "The id is:": ID,
+                                "The chromosome name is:": gene_chromosome_name}
             except KeyError:
                 contents = Path("html/Error.html").read_text()
             except ValueError:
                 contents = Path("html/Error.html").read_text()
+
         elif path == "/geneCalc":
             try:
                 gene = arguments["gene"][0]
@@ -170,10 +189,13 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 gene_length = len(list_seq)
                 contents = read_html_file("geneCalc" + ".html") \
                     .render(context={"gene_length": gene_length, "message": message})
+                if arguments['json'][0] == '1':
+                    contents = {"Total length:": gene_length, "Bases": message}
             except KeyError:
                 contents = Path("html/Error.html").read_text()
             except ValueError:
                 contents = Path("html/Error.html").read_text()
+
         elif path == "/geneList":
             try:
                 CHROMO = arguments["chromo"][0]
@@ -193,6 +215,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                         pass
                 if len(genes_names) == 0:
                     contents = Path("html/Error.html").read_text()
+                elif arguments['json'][0] == '1':
+                    contents = {"The name of the genes are:": genes_names}
                 else:
                     contents = read_html_file("geneList" + ".html") \
                         .render(context={"list_names": genes_names})
@@ -209,9 +233,11 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         self.send_response(200)  # -- Status line: OK!
 
         # Define the content-type header:
-        if "json=1" in path:
-            self.send_header('Content-Type', 'application/json')
-        else:
+        try:
+            if arguments['json'][0] == '1':
+                contents = json.dumps(contents)
+                self.send_header('Content_Type', 'application/json')
+        except KeyError:
             self.send_header('Content-Type', 'text/html')
         self.send_header('Content-Length', len(str.encode(contents)))
 
