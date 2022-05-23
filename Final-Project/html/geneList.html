@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Gene List</title>
+    </head>
+    <body>
+    <p>The name of the genes are: </p>
+    <p>{% for b in context.list_names %} </p>
+    <ul><li>{{b}}</li></ul>
+    {% endfor %}
+    </body>
+</html>

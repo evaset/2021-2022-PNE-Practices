@@ -8,9 +8,6 @@ import jinja2 as j
 from urllib.parse import parse_qs, urlparse
 
 HTML_FOLDER = "./html/"
-
-
-
 PORT = 8080
 GENES = {"SRCAP":"ENSG00000080603",
          "FRAT1":"ENSG00000165879",
@@ -24,15 +21,37 @@ GENES = {"SRCAP":"ENSG00000080603",
          "KDR":"ENSG00000128052",
          "ANK2":"ENSG00000145362"}
 
+def convert_message(base_count, percent_count):
+    message = ""
+    for k, v in base_count.items():
+        message = message + f"{k}:  {base_count[k]} ({percent_count[k]}%)" + "<br>"
+    return message
+
 def read_html_file(filename):
     contents = Path(HTML_FOLDER + filename).read_text()
     contents = j.Template(contents)
     return contents
 
+
 def make_ensembl_request(url):
     SERVER = "rest.ensembl.org"
     # params shuld be &param=1
     ARGUMENT = "?content-type=application/json"
+    conn = http.client.HTTPConnection(SERVER)
+    try:
+        conn.request("GET", url + ARGUMENT)
+    except ConnectionRefusedError:
+        print("ERROR! Cannot connect to the server")
+        exit()
+    r1 = conn.getresponse()
+    print(f"Response received:{r1.status} {r1.reason}\n")
+    data1 = r1.read().decode("utf-8")
+    return json.loads(data1)
+
+def make_ensembl_request2(url):
+    SERVER = "rest.ensembl.org"
+    # params shuld be &param=1
+    ARGUMENT = "?feature_type=Variation;content-type=application/json"
     conn = http.client.HTTPConnection(SERVER)
     try:
         conn.request("GET", url + ARGUMENT)
@@ -86,6 +105,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     .render(context={"n_species": n_species,"limit_species": limit_species, "species": list_species})
             except ValueError:
                 contents = Path("html/Error.html").read_text()
+            except KeyError:
+                contents = Path("html/Error.html").read_text()
         elif path == "/karyotype":
             try:
                 class_specie = arguments["specie"][0]
@@ -124,9 +145,14 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 gene = arguments["gene"][0]
                 ID = GENES[gene]
                 dict_answer = make_ensembl_request("/sequence/id/" + ID)
-                list_seq = dict_answer["seq"]
-                contents = read_html_file("geneSeq" + ".html") \
-                    .render(context={"list_seq": list_seq})
+                gene_info_list = dict_answer["desc"].split(":")
+                gene_start = int(gene_info_list[3])
+                gene_end = int(gene_info_list[4])
+                gene_length = gene_end - gene_start
+                gene_chromosome_name = gene_info_list[1]
+                #gene_length2 = len(dict_answer["seq"])
+                contents = read_html_file("geneInfo" + ".html") \
+                    .render(context={"gene_start": gene_start, "gene_end": gene_end, "gene_length": gene_length,"ID": ID, "gene_chromosome_name": gene_chromosome_name})
             except KeyError:
                 contents = Path("html/Error.html").read_text()
             except ValueError:
@@ -137,12 +163,46 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 ID = GENES[gene]
                 dict_answer = make_ensembl_request("/sequence/id/" + ID)
                 list_seq = dict_answer["seq"]
-                contents = read_html_file("geneSeq" + ".html") \
-                    .render(context={"list_seq": list_seq})
+                seq = Seq(list_seq)
+                total_length = seq.count()
+                base_percentage = seq.percent(total_length)
+                message = convert_message(total_length, base_percentage)
+                gene_length = len(list_seq)
+                contents = read_html_file("geneCalc" + ".html") \
+                    .render(context={"gene_length": gene_length, "message": message})
             except KeyError:
                 contents = Path("html/Error.html").read_text()
             except ValueError:
                 contents = Path("html/Error.html").read_text()
+        elif path == "/geneList":
+            try:
+                CHROMO = arguments["chromo"][0]
+                START = arguments["start"][0]
+                END = arguments["end"][0]
+                dict_answer = make_ensembl_request2("/phenotype/region/homo_sapiens/" + CHROMO + ":" + START + "-" + END)
+                print(dict_answer)
+                genes_names = []
+                for d in dict_answer:
+                    phenotype = d["phenotype_associations"]
+                    print("phenotype: ",phenotype)
+                    try:
+                        for e in phenotype:
+                            genes_names.append(e["attributes"]["associated_gene"])
+                            print(genes_names)
+                    except KeyError:
+                        pass
+                if len(genes_names) == 0:
+                    contents = Path("html/Error.html").read_text()
+                else:
+                    contents = read_html_file("geneList" + ".html") \
+                        .render(context={"list_names": genes_names})
+            except KeyError:
+                contents = Path("html/Error.html").read_text()
+            except ValueError:
+                contents = Path("html/Error.html").read_text()
+            except TypeError:
+                contents = Path("html/Error.html").read_text()
+
 
         else:
             contents = Path("html/Error.html").read_text()
