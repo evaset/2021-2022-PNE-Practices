@@ -4,12 +4,13 @@
         <meta charset="UTF-8">
         <title>List Species</title>
     </head>
-    <body>
+    <body style="background-color: #FFB6C1;">
     <p>The total number of species in the ensembl is: {{context.n_species}}</p>
     <p>The limit you have selected is: {{context.limit_species}}</p>
     <p>The name of the species are: </p>
     <p>{% for b in context.species %} </p>
     <ul><li>{{b}}</li></ul>
     {% endfor %}
+    <a href="/">Main page</a>
     </body>
 </html>

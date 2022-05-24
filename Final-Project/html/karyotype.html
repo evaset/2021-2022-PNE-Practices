@@ -4,10 +4,11 @@
         <meta charset="UTF-8">
         <title>Karyotype</title>
     </head>
-    <body>
+    <body style="background-color: #FFDAB9;">
     <p>The name of the chromosomes are: </p>
     <p>{% for b in context.list_chromosomes %} </p>
     <ul><li>{{b}}</li></ul>
     {% endfor %}
+    <a href="/">Main page</a>
     </body>
 </html>

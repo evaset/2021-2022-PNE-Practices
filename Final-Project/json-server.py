@@ -9,17 +9,18 @@ from urllib.parse import parse_qs, urlparse
 
 HTML_FOLDER = "./html/"
 PORT = 8080
-GENES = {"SRCAP":"ENSG00000080603",
-         "FRAT1":"ENSG00000165879",
-         "ADA":"ENSG00000196839",
-         "FXN":"ENSG00000165060",
-         "RNU6_269P":"ENST00000391077",
-         "MIR633":"ENSG00000207552",
-         "TTTY4C":"ENSG00000228296",
-         "RBMY2YP":"ENSG00000227633",
-         "FGFR3":"ENSG00000068078",
-         "KDR":"ENSG00000128052",
-         "ANK2":"ENSG00000145362"}
+GENES = {"SRCAP": "ENSG00000080603",
+         "FRAT1": "ENSG00000165879",
+         "ADA": "ENSG00000196839",
+         "FXN": "ENSG00000165060",
+         "RNU6_269P": "ENST00000391077",
+         "MIR633": "ENSG00000207552",
+         "TTTY4C": "ENSG00000228296",
+         "RBMY2YP": "ENSG00000227633",
+         "FGFR3": "ENSG00000068078",
+         "KDR": "ENSG00000128052",
+         "ANK2": "ENSG00000145362"}
+
 
 def convert_message(base_count, percent_count):
     message = ""
@@ -27,10 +28,17 @@ def convert_message(base_count, percent_count):
         message = message + f"{k}:  {base_count[k]} ({percent_count[k]}%)" + "<br>"
     return message
 
+def convert_message2(base_count, percent_count):
+    message = ""
+    for k,v in base_count.items():
+        message = message+ f"{k}:  {base_count[k]} ({percent_count[k]}%)"+ "\n"
+    return message
+
 def read_html_file(filename):
     contents = Path(HTML_FOLDER + filename).read_text()
     contents = j.Template(contents)
     return contents
+
 
 def make_ensembl_request(url):
     SERVER = "rest.ensembl.org"
@@ -46,6 +54,7 @@ def make_ensembl_request(url):
     print(f"Response received:{r1.status} {r1.reason}\n")
     data1 = r1.read().decode("utf-8")
     return json.loads(data1)
+
 
 def make_ensembl_request2(url):
     SERVER = "rest.ensembl.org"
@@ -74,7 +83,6 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         """This method is called whenever the client invokes the GET method
         in the HTTP protocol request"""
 
-
         # Print the request line
         termcolor.cprint(self.requestline, 'green')
         url_path = urlparse(self.path)
@@ -84,11 +92,11 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         print("the new path is: ", url_path.path)
         print("The argument is: ", arguments)
 
-
         if self.path == "/":
             contents = Path("html/index.html").read_text()
         elif self.path == "/favicon.ico":
             contents = Path("html/index.html").read_text()
+
         elif path == "/listSpecies":
             try:
                 limit_species = int(arguments["limit"][0])
@@ -103,14 +111,16 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                         list_species.append(dict_answer["species"][i]["name"])
                 contents = read_html_file("list_species" + ".html")\
                     .render(context={"n_species": n_species,"limit_species": limit_species, "species": list_species})
-                if arguments['json'][0] == '1':
-                    contents = {"The total number of species in the ensembl is:": n_species,
-                                "The limit you have selected is:": limit_species,
-                                "The limit you have selected is": list_species}
-            except ValueError:
+                try:
+                    if arguments['json'][0] == '1':
+                        contents = {"The total number of species in the ensembl is:": n_species,
+                                    "The limit you have selected is:": limit_species,
+                                    "The name of the species are:": list_species}
+                except KeyError:
+                    pass
+            except (ValueError, KeyError):
                 contents = Path("html/Error.html").read_text()
-            except KeyError:
-                contents = Path("html/Error.html").read_text()
+
         elif path == "/karyotype":
             try:
                 class_specie = arguments["specie"][0]
@@ -118,11 +128,12 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 list_chromosomes = dict_answer["karyotype"]
                 contents = read_html_file("karyotype" + ".html") \
                     .render(context={"list_chromosomes": list_chromosomes})
-                if arguments['json'][0] == '1':
-                    contents = {"The name of the chromosomes are:": list_chromosomes}
-            except KeyError:
-                contents = Path("html/Error.html").read_text()
-            except ValueError:
+                try:
+                    if arguments['json'][0] == '1':
+                        contents = {"The name of the chromosomes are:": list_chromosomes}
+                except KeyError:
+                    pass
+            except (ValueError, KeyError):
                 contents = Path("html/Error.html").read_text()
 
         elif path == "/chromosomeLength":
@@ -133,9 +144,12 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 list_chromosomes = dict_answer["top_level_region"][n_chromosome]["length"]
                 contents = read_html_file("chromosomeLength" + ".html")\
                     .render(context={"chromosome_length": list_chromosomes})
-                if arguments['json'][0] == '1':
-                    contents = {"The length of the chromosome is:": list_chromosomes}
-            except KeyError:
+                try:
+                    if arguments['json'][0] == '1':
+                        contents = {"The length of the chromosome is:": list_chromosomes}
+                except KeyError:
+                    pass
+            except (ValueError, KeyError):
                 contents = Path("html/Error.html").read_text()
 
         elif path == "/geneSeq":
@@ -146,11 +160,12 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 list_seq = dict_answer["seq"]
                 contents = read_html_file("geneSeq" + ".html") \
                     .render(context={"list_seq": list_seq})
-                if arguments['json'][0] == '1':
-                    contents = {"The sequence of the gene is:": list_seq}
-            except KeyError:
-                contents = Path("html/Error.html").read_text()
-            except ValueError:
+                try:
+                    if arguments['json'][0] == '1':
+                        contents = {"The sequence of the gene is:": list_seq}
+                except KeyError:
+                    pass
+            except (ValueError, KeyError):
                 contents = Path("html/Error.html").read_text()
 
         elif path == "/geneInfo":
@@ -165,15 +180,16 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 gene_chromosome_name = gene_info_list[1]
                 contents = read_html_file("geneInfo" + ".html") \
                     .render(context={"gene_start": gene_start, "gene_end": gene_end, "gene_length": gene_length,"ID": ID,"gene_chromosome_name": gene_chromosome_name})
-                if arguments['json'][0] == '1':
-                    contents = {"The start of the gene is:": gene_start,
-                                "The end of the gene is:": gene_end,
-                                "The length is:": gene_length,
-                                "The id is:": ID,
-                                "The chromosome name is:": gene_chromosome_name}
-            except KeyError:
-                contents = Path("html/Error.html").read_text()
-            except ValueError:
+                try:
+                    if arguments['json'][0] == '1':
+                        contents = {"The start of the gene is:": gene_start,
+                                    "The end of the gene is:": gene_end,
+                                    "The length is:": gene_length,
+                                    "The id is:": ID,
+                                    "The chromosome name is:": gene_chromosome_name}
+                except KeyError:
+                    pass
+            except (ValueError, KeyError):
                 contents = Path("html/Error.html").read_text()
 
         elif path == "/geneCalc":
@@ -189,11 +205,13 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 gene_length = len(list_seq)
                 contents = read_html_file("geneCalc" + ".html") \
                     .render(context={"gene_length": gene_length, "message": message})
-                if arguments['json'][0] == '1':
-                    contents = {"Total length:": gene_length, "Bases": message}
-            except KeyError:
-                contents = Path("html/Error.html").read_text()
-            except ValueError:
+                try:
+                    if arguments['json'][0] == '1':
+                        message = convert_message2(total_length, base_percentage)
+                        contents = {"Total length:": gene_length, "Bases:\n": message}
+                except KeyError:
+                    pass
+            except (ValueError, KeyError):
                 contents = Path("html/Error.html").read_text()
 
         elif path == "/geneList":
@@ -202,30 +220,27 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 START = arguments["start"][0]
                 END = arguments["end"][0]
                 dict_answer = make_ensembl_request2("/phenotype/region/homo_sapiens/" + CHROMO + ":" + START + "-" + END)
-                print(dict_answer)
                 genes_names = []
                 for d in dict_answer:
                     phenotype = d["phenotype_associations"]
-                    print("phenotype: ",phenotype)
                     try:
                         for e in phenotype:
                             genes_names.append(e["attributes"]["associated_gene"])
-                            print(genes_names)
                     except KeyError:
                         pass
                 if len(genes_names) == 0:
                     contents = Path("html/Error.html").read_text()
-                elif arguments['json'][0] == '1':
-                    contents = {"The name of the genes are:": genes_names}
                 else:
                     contents = read_html_file("geneList" + ".html") \
                         .render(context={"list_names": genes_names})
-            except KeyError:
+                try:
+                    if arguments['json'][0] == '1':
+                        contents = {"The name of the genes are:": genes_names}
+                except KeyError:
+                    pass
+            except (ValueError, TypeError, KeyError):
                 contents = Path("html/Error.html").read_text()
-            except ValueError:
-                contents = Path("html/Error.html").read_text()
-            except TypeError:
-                contents = Path("html/Error.html").read_text()
+
         else:
             contents = Path("html/Error.html").read_text()
 
