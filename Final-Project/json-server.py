@@ -139,11 +139,21 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         elif path == "/chromosomeLength":
             try:
                 class_specie = arguments["specie"][0]
-                n_chromosome = int(arguments["chromo"][0])
+                len_chromosome = int(arguments["chromo"][0])
                 dict_answer = make_ensembl_request("/info/assembly/" + class_specie)
-                list_chromosomes = dict_answer["top_level_region"][n_chromosome]["length"]
-                contents = read_html_file("chromosomeLength" + ".html")\
-                    .render(context={"chromosome_length": list_chromosomes})
+                final_list = []
+                dict_answer = dict_answer["top_level_region"]
+                print(len_chromosome)
+
+                for d in dict_answer:
+                    if d["coord_system"] != "scaffold":
+                        if d["length"] > len_chromosome and len_chromosome >= 0:
+                            final_list.append(d["name"])
+                if len(final_list) == 0:
+                    contents = Path("html/Error.html").read_text()
+                else:
+                    contents = read_html_file("chromosomeLength" + ".html")\
+                        .render(context={"final_list": final_list})
                 try:
                     if arguments['json'][0] == '1':
                         contents = {"The length of the chromosome is:": list_chromosomes}

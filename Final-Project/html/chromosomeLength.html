@@ -5,7 +5,10 @@
         <title>Chromosome Length</title>
     </head>
     <body style="background-color: #FAFAD2;">
-    <p>The length of the chromosome is: {{context.chromosome_length}} </p>
+    <p>The chromosomes with grater length are: </p>
+    <p>{% for b in context.final_list %} </p>
+    <ul><li>{{b}}</li></ul>
+    {% endfor %}
     <a href="/">Main page</a>
     </body>
 </html>
